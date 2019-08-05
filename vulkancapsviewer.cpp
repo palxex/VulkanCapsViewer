@@ -66,6 +66,8 @@
 const std::string vulkanCapsViewer::version = "1.93";
 const std::string vulkanCapsViewer::reportVersion = "1.9";
 
+extern "C" void makeViewMetalCompatible(void* handle);
+
 /// <summary>
 ///	Returns operating system name
 /// </summary>
@@ -442,6 +444,8 @@ bool vulkanCapsViewer::initVulkan()
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
     surfaceExtension = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
     // todo : wayland etc.
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+    surfaceExtension = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
 #endif
 
     std::vector<const char*> enabledExtensions = { VK_KHR_SURFACE_EXTENSION_NAME, surfaceExtension.c_str() };
@@ -564,7 +568,16 @@ bool vulkanCapsViewer::initVulkan()
         surfaceCreateInfo.connection = QX11Info::connection();
         surfaceCreateInfo.window = static_cast<xcb_window_t>(this->winId());
         surfaceResult = vkCreateXcbSurfaceKHR(vkInstance, &surfaceCreateInfo, nullptr, &surface);
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+		VkMacOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
+		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+		surfaceCreateInfo.pNext = NULL;
+		surfaceCreateInfo.flags = 0;
+		makeViewMetalCompatible((void*)(this->winId()));
+		surfaceCreateInfo.pView = (void*)(this->winId());
+		surfaceResult = vkCreateMacOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);
 #endif
+	assert(surface != VK_NULL_HANDLE);
 
     displayGlobalLayers(ui.treeWidgetGlobalLayers);
     displayGlobalExtensions();

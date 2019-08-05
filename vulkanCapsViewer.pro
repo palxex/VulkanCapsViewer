@@ -19,6 +19,10 @@ win32 {
     LIBS += "$$PWD/libs/vulkan/vulkan-1.lib"
     LIBS += Advapi32.lib
 }
+macos {
+    LIBS += -L/usr/local/lib -lvulkan -framework Cocoa -framework QuartzCore
+    DEFINES += VK_USE_PLATFORM_MACOS_MVK
+}
 linux:!android {
     LIBS += -lvulkan
     QT += x11extras
@@ -47,7 +51,7 @@ win32:RC_FILE = vulkanCapsViewer.rc
 
 HEADERS +=
 
-SOURCES +=
+SOURCES += makeviewmetal.mm
 
 DISTFILES += \
     android/AndroidManifest.xml \
